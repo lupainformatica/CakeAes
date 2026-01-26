@@ -7,7 +7,9 @@ use ArrayObject;
 use Cake\Core\Configure;
 use Cake\Database\Expression\FunctionExpression;
 use Cake\Database\Expression\IdentifierExpression;
+use Cake\Database\Expression\OrderByExpression;
 use Cake\Database\Expression\QueryExpression;
+use Cake\Database\Expression\ComparisonExpression;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\Behavior;
@@ -159,9 +161,9 @@ class EncryptBehavior extends Behavior
     public function decryptWhere(Query $query): Query
     {
         $expr = $query->clause('where');
-        if ($expr instanceof \Cake\Database\Expression\QueryExpression) {
+        if ($expr instanceof QueryExpression) {
             $expr->traverse(function ($condition) {
-                if ($condition instanceof \Cake\Database\Expression\ComparisonExpression) {
+                if ($condition instanceof ComparisonExpression) {
                     $field = $condition->getField();
                     if (is_string($field) && $this->isEncrypted($field)) {
                         $condition->setField($this->decryptField($field));
@@ -184,7 +186,7 @@ class EncryptBehavior extends Behavior
     public function decryptOrder(Query $query): Query
     {
         $expr = $query->clause('order');
-        if ($expr instanceof \Cake\Database\Expression\OrderByExpression) {
+        if ($expr instanceof OrderByExpression) {
             $expr->iterateParts(function ($direction, &$field) {
                 if ($this->isEncrypted($field)) {
                     $field = $this->decryptString($field);
@@ -215,7 +217,7 @@ class EncryptBehavior extends Behavior
                 $isEncrypted = in_array($field, $this->_table->encryptFields);
             } else {
                 if (!empty($this->_table->{$table}) && $this->_table->{$table}->hasBehavior('Encrypt')) {
-                    $isEncrypted = $this->_table->{$table}->isEncrypted($field);
+                    $isEncrypted = $this->_table->{$table}->getBehavior('Encrypt')->isEncrypted($field);
                 }
             }
         }
